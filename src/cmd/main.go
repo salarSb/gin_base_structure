@@ -4,6 +4,7 @@ import (
 	"base_structure/src/api"
 	"base_structure/src/config"
 	"base_structure/src/data/cache"
+	"base_structure/src/data/db"
 )
 
 func main() {
@@ -15,5 +16,12 @@ func main() {
 		return
 	}
 	defer cache.CloseRedis()
+	err = db.InitDb(cfg)
+	if err != nil {
+		//logger.Fatal(logging.Postgres, logging.StartUp, err.Error(), nil)
+		return
+	}
+	//migrations.Up1()
+	defer db.CloseDb()
 	api.InitServer(cfg)
 }
