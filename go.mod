@@ -5,6 +5,7 @@ go 1.22
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.20.0
+	github.com/go-redis/redis/v7 v7.4.1
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/viper v1.18.2
 )
