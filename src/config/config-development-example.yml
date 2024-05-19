@@ -1,0 +1,48 @@
+server:
+  port: 5005
+  runMode: debug
+logger:
+  filePath: ./logs/
+  encoding: json
+  level: debug
+  logger: zap
+cors:
+  allowOrigins: "*"
+postgres:
+  host:
+  port:
+  user:
+  password:
+  dbName:
+  sslMode: disable
+  maxIdleConnections: 15
+  maxOpenConnections: 100
+  connectionMaxLifetime: 5
+redis:
+  host:
+  port:
+  password:
+  db: 0
+  dialTimeout: 5
+  writeTimeout: 5
+  readTimeout: 5
+  poolSize: 10
+  poolTimeout: 15
+  idleCheckFrequency: 500
+  idleTimeout: 500
+password:
+  includeChars: true
+  includeDigits: true
+  minLength: 6
+  maxLength: 64
+  includeUppercase: true
+  includeLowercase: true
+otp:
+  expireTime: 120
+  digits: 6
+  limiter: 10
+jwt:
+  secret:
+  refreshSecret:
+  accessTokenExpireDuration:
+  refreshTokenExpireDuration:

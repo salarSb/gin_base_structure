@@ -2,16 +2,16 @@ package api
 
 import (
 	"base_structure/src/api/routers"
+	"base_structure/src/config"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
-func InitServer() {
+func InitServer(cfg *config.Config) {
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 	RegisterRoutes(r)
-	//err := r.Run(fmt.Sprintf(":%s", cfg.Server.InternalPort))
-	err := r.Run(fmt.Sprintf(":5005"))
+	err := r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
 		//logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
 		return

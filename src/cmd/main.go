@@ -1,7 +1,11 @@
 package main
 
-import "base_structure/src/api"
+import (
+	"base_structure/src/api"
+	"base_structure/src/config"
+)
 
 func main() {
-	api.InitServer()
+	cfg := config.GetConfig()
+	api.InitServer(cfg)
 }
