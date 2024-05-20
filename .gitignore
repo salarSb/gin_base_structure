@@ -33,3 +33,4 @@ __debug_bin
 /src/docs/swagger.yaml
 /src/config/config-production.yml
 /docker/redis/redis.conf
+/logs/

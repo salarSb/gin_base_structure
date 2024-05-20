@@ -10,17 +10,30 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/joho/godotenv"
+	"os"
 )
 
 func InitServer(cfg *config.Config) {
 	logger := logging.NewLogger(cfg)
+	err := godotenv.Load()
+	if err != nil {
+		logger.Fatal(logging.Internal, logging.Api, "error on reading .env", nil)
+		return
+	}
+	appEnv := os.Getenv("APP_ENV")
 	gin.SetMode(cfg.Server.RunMode)
 	r := gin.New()
-	r.Use(gin.Logger(), gin.Recovery())
+	if appEnv == "development" {
+		r.Use(gin.Logger(), gin.CustomRecovery(middlewares.ErrorHandler))
+	} else {
+		r.Use(gin.Logger(), gin.Recovery())
+	}
 	r.Use(middlewares.Cors(cfg))
+	r.Use(middlewares.DefaultStructuredLogger(cfg))
 	RegisterRoutes(r)
 	RegisterValidators(logger)
-	err := r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
+	err = r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
 		logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
 		return

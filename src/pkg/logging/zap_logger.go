@@ -4,9 +4,11 @@ import (
 	"base_structure/src/config"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"os"
 	"time"
 )
 
@@ -50,6 +52,11 @@ func (l *zapLogger) getLogLevel() zapcore.Level {
 
 func (l *zapLogger) Init() {
 	once.Do(func() {
+		err := godotenv.Load()
+		if err != nil {
+			panic("unable to read .env file")
+		}
+		appName := os.Getenv("APP_NAME")
 		fileName := fmt.Sprintf("%s%s-%s.%s", l.cfg.Logger.FilePath, time.Now().Format("2006-01-02"), uuid.New(), "log")
 		w := zapcore.AddSync(&lumberjack.Logger{
 			Filename:   fileName,
@@ -63,7 +70,7 @@ func (l *zapLogger) Init() {
 		encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 		core := zapcore.NewCore(zapcore.NewJSONEncoder(encoderConfig), w, l.getLogLevel())
 		logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
-		zapSingleLogger = logger.With(string(AppName), "CarSale", string(LoggerName), "ZapLog")
+		zapSingleLogger = logger.With(string(AppName), appName, string(LoggerName), "ZapLog")
 	})
 	l.logger = zapSingleLogger
 }
