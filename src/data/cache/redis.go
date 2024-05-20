@@ -2,6 +2,7 @@ package cache
 
 import (
 	"base_structure/src/config"
+	"base_structure/src/pkg/logging"
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis/v7"
@@ -10,7 +11,7 @@ import (
 
 var redisClient *redis.Client
 
-//var logger = logging.NewLogger(config.GetConfig())
+var logger = logging.NewLogger(config.GetConfig())
 
 func InitRedis(cfg *config.Config) error {
 	redisClient = redis.NewClient(&redis.Options{
@@ -39,7 +40,7 @@ func GetRedis() *redis.Client {
 func CloseRedis() {
 	err := redisClient.Close()
 	if err != nil {
-		//logger.Fatal(logging.Redis, logging.Closing, "error on closing redis connection", nil)
+		logger.Fatal(logging.Redis, logging.Closing, "error on closing redis connection", nil)
 		return
 	}
 }

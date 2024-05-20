@@ -5,6 +5,7 @@ import (
 	"base_structure/src/api/routers"
 	"base_structure/src/api/validations"
 	"base_structure/src/config"
+	"base_structure/src/pkg/logging"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -12,15 +13,16 @@ import (
 )
 
 func InitServer(cfg *config.Config) {
+	logger := logging.NewLogger(cfg)
 	gin.SetMode(cfg.Server.RunMode)
 	r := gin.New()
 	r.Use(gin.Logger(), gin.Recovery())
 	r.Use(middlewares.Cors(cfg))
 	RegisterRoutes(r)
-	RegisterValidators()
+	RegisterValidators(logger)
 	err := r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
-		//logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
+		logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
 		return
 	}
 }
@@ -34,27 +36,27 @@ func RegisterRoutes(r *gin.Engine) {
 	}
 }
 
-func RegisterValidators() {
+func RegisterValidators(logger logging.Logger) {
 	val, ok := binding.Validator.Engine().(*validator.Validate)
 	if ok {
 		err := val.RegisterValidation("mobile", validations.IranianMobileNumberValidator, true)
 		if err != nil {
-			//logger.Fatal(
-			//	logging.Validation,
-			//	logging.MobileValidation,
-			//	"Error on registering custom mobile validation",
-			//	nil,
-			//)
+			logger.Fatal(
+				logging.Validation,
+				logging.MobileValidation,
+				"Error on registering custom mobile validation",
+				nil,
+			)
 			return
 		}
 		err = val.RegisterValidation("password", validations.PasswordValidator, true)
 		if err != nil {
-			//logger.Fatal(
-			//	logging.Validation,
-			//	logging.PasswordValidation,
-			//	"Error on registering custom password validation",
-			//	nil,
-			//)
+			logger.Fatal(
+				logging.Validation,
+				logging.PasswordValidation,
+				"Error on registering custom password validation",
+				nil,
+			)
 			return
 		}
 	}

@@ -2,6 +2,7 @@ package db
 
 import (
 	"base_structure/src/config"
+	"base_structure/src/pkg/logging"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -10,7 +11,7 @@ import (
 
 var dbClient *gorm.DB
 
-//var logger = logging.NewLogger(config.GetConfig())
+var logger = logging.NewLogger(config.GetConfig())
 
 func InitDb(cfg *config.Config) error {
 	var err error
@@ -35,7 +36,7 @@ func InitDb(cfg *config.Config) error {
 	sqlDb.SetMaxIdleConns(cfg.Postgres.MaxIdleConnections)
 	sqlDb.SetMaxOpenConns(cfg.Postgres.MaxOpenConnections)
 	sqlDb.SetConnMaxLifetime(cfg.Postgres.ConnectionMaxLifetime * time.Minute)
-	//logger.Info(logging.Postgres, logging.StartUp, "db connection established", nil)
+	logger.Info(logging.Postgres, logging.StartUp, "db connection established", nil)
 	return nil
 }
 
@@ -47,7 +48,7 @@ func CloseDb() {
 	cnn, _ := dbClient.DB()
 	err := cnn.Close()
 	if err != nil {
-		//logger.Info(logging.Postgres, logging.Closing, "error on closing db connection", nil)
+		logger.Info(logging.Postgres, logging.Closing, "error on closing db connection", nil)
 		return
 	}
 }

@@ -5,20 +5,21 @@ import (
 	"base_structure/src/config"
 	"base_structure/src/data/cache"
 	"base_structure/src/data/db"
+	"base_structure/src/pkg/logging"
 )
 
 func main() {
 	cfg := config.GetConfig()
-	//logger := logging.NewLogger(cfg)
+	logger := logging.NewLogger(cfg)
 	err := cache.InitRedis(cfg)
 	if err != nil {
-		//logger.Fatal(logging.Redis, logging.StartUp, err.Error(), nil)
+		logger.Fatal(logging.Redis, logging.StartUp, err.Error(), nil)
 		return
 	}
 	defer cache.CloseRedis()
 	err = db.InitDb(cfg)
 	if err != nil {
-		//logger.Fatal(logging.Postgres, logging.StartUp, err.Error(), nil)
+		logger.Fatal(logging.Postgres, logging.StartUp, err.Error(), nil)
 		return
 	}
 	//migrations.Up1()

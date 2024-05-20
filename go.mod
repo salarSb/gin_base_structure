@@ -6,8 +6,12 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/go-redis/redis/v7 v7.4.1
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/viper v1.18.2
+	go.uber.org/zap v1.27.0
+	gorm.io/driver/postgres v1.5.7
+	gorm.io/gorm v1.25.10
 )
 
 require (
@@ -56,7 +60,6 @@ require (
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	gorm.io/driver/postgres v1.5.7 // indirect
-	gorm.io/gorm v1.25.10 // indirect
 )
