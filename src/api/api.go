@@ -31,7 +31,7 @@ func InitServer(cfg *config.Config) {
 	}
 	r.Use(middlewares.Cors(cfg))
 	r.Use(middlewares.DefaultStructuredLogger(cfg))
-	RegisterRoutes(r)
+	RegisterRoutes(r, cfg)
 	RegisterValidators(logger)
 	err = r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
@@ -40,12 +40,21 @@ func InitServer(cfg *config.Config) {
 	}
 }
 
-func RegisterRoutes(r *gin.Engine) {
+func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
 	{
+		//Health
 		health := v1.Group("/health")
+
+		//User
+		users := v1.Group("/users")
+
+		//Health
 		routers.Health(health)
+
+		//User
+		routers.User(users, cfg)
 	}
 }
 
