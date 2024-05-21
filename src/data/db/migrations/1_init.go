@@ -60,7 +60,7 @@ func createDefaultInformation(database *gorm.DB) {
 	pass := constants.AdminPassword
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	u.Password = string(hashedPassword)
-	createAdminUserIfNotExists(database, &u, adminRole.Id)
+	createAdminUserIfNotExists(database, &u, adminRole.ID)
 }
 
 func createRoleIfNotExists(database *gorm.DB, r *models.Role) {
@@ -71,12 +71,12 @@ func createRoleIfNotExists(database *gorm.DB, r *models.Role) {
 	}
 }
 
-func createAdminUserIfNotExists(database *gorm.DB, u *models.User, roleId int) {
+func createAdminUserIfNotExists(database *gorm.DB, u *models.User, roleId uint) {
 	exists := 0
 	database.Model(&models.User{}).Select("1").Where("username = ?", u.Username).First(&exists)
 	if exists == 0 {
 		database.Create(u)
-		ru := models.RoleUser{UserId: u.Id, RoleId: roleId}
+		ru := models.RoleUser{UserId: u.ID, RoleId: roleId}
 		database.Create(&ru)
 	}
 }

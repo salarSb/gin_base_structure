@@ -68,7 +68,7 @@ func (s *UserService) RegisterByUsername(req *dto.RegisterByUsernameRequest) err
 		s.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
 		return err
 	}
-	err = tx.Create(&models.RoleUser{RoleId: roleId, UserId: u.Id}).Error
+	err = tx.Create(&models.RoleUser{RoleId: roleId, UserId: u.ID}).Error
 	if err != nil {
 		tx.Rollback()
 		s.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
@@ -101,7 +101,7 @@ func (s *UserService) RegisterLoginByMobileNumber(req *dto.RegisterLoginByMobile
 			return nil, err
 		}
 		tokenDto := tokenDto{
-			UserId:       user.Id,
+			UserId:       user.ID,
 			FirstName:    user.FirstName,
 			LastName:     user.LastName,
 			Username:     user.Username,
@@ -138,7 +138,7 @@ func (s *UserService) RegisterLoginByMobileNumber(req *dto.RegisterLoginByMobile
 		s.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
 		return nil, err
 	}
-	err = tx.Create(&models.RoleUser{RoleId: roleId, UserId: u.Id}).Error
+	err = tx.Create(&models.RoleUser{RoleId: roleId, UserId: u.ID}).Error
 	if err != nil {
 		tx.Rollback()
 		s.logger.Error(logging.Postgres, logging.Rollback, err.Error(), nil)
@@ -157,7 +157,7 @@ func (s *UserService) RegisterLoginByMobileNumber(req *dto.RegisterLoginByMobile
 		return nil, err
 	}
 	tokenDto := tokenDto{
-		UserId:       user.Id,
+		UserId:       user.ID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Username:     user.Username,
@@ -192,7 +192,7 @@ func (s *UserService) LoginByUsername(req *dto.LoginByUsernameRequest) (*dto.Tok
 		return nil, err
 	}
 	tokenDto := tokenDto{
-		UserId:       user.Id,
+		UserId:       user.ID,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
 		Username:     user.Username,
@@ -258,7 +258,7 @@ func (s *UserService) existsByMobileNumber(mobileNumber string) (bool, error) {
 	return exists, nil
 }
 
-func (s *UserService) getDefaultRole() (roleId int, err error) {
+func (s *UserService) getDefaultRole() (roleId uint, err error) {
 	if err = s.database.Model(&models.Role{}).
 		Select("id").
 		Where("name = ?", constants.DefaultRoleName).

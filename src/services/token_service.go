@@ -16,7 +16,7 @@ type TokenService struct {
 }
 
 type tokenDto struct {
-	UserId       int
+	UserId       uint
 	FirstName    string
 	LastName     string
 	Username     string
