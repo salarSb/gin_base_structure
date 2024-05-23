@@ -31,8 +31,8 @@ func InitServer(cfg *config.Config) {
 	}
 	r.Use(middlewares.Cors(cfg))
 	r.Use(middlewares.DefaultStructuredLogger(cfg))
-	RegisterRoutes(r, cfg)
 	RegisterValidators(logger)
+	RegisterRoutes(r, cfg)
 	err = r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
 		logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
