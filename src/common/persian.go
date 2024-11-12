@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-const iranianMobileNumberPattern string = `^09(1[0-9]|2[0-2]|3[0-9]|9[0-9])[0-9]{7}$`
+const iranianMobileNumberPattern string = `^09(0[1-9]|1[0-9]|2[0-2]|3[0-9]|9[0-9])[0-9]{7}$`
 
 var logger = logging.NewLogger(config.GetConfig())
 
