@@ -40,9 +40,8 @@ func InitRedis(cfg *config.Config) error {
 	return err
 }
 
-func GetRedis() *redis.Client {
+func GetRedis(cfg *config.Config) *redis.Client {
 	if redisClient == nil {
-		cfg := config.GetConfig()
 		err := InitRedis(cfg)
 		if err != nil {
 			logger.Fatal(logging.Redis, logging.StartUp, err.Error(), nil)

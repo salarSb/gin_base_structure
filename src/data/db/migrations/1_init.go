@@ -12,8 +12,8 @@ import (
 
 var logger = logging.NewLogger(config.GetConfig())
 
-func Up1() {
-	database := db.GetDb()
+func Up1(cfg *config.Config) {
+	database := db.GetDb(cfg)
 	createTables(database)
 	createDefaultInformation(database)
 }

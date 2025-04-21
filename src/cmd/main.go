@@ -12,10 +12,10 @@ import (
 func main() {
 	cfg := config.GetConfig()
 	constants.InitConstants()
-	cache.GetRedis()
+	cache.GetRedis(cfg)
 	defer cache.CloseRedis()
-	db.GetDb()
-	migrations.Up1()
+	db.GetDb(cfg)
+	migrations.Up1(cfg)
 	defer db.CloseDb()
 	api.InitServer(cfg)
 }

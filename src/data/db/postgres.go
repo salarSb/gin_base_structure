@@ -43,9 +43,8 @@ func InitDb(cfg *config.Config) error {
 	return err
 }
 
-func GetDb() *gorm.DB {
+func GetDb(cfg *config.Config) *gorm.DB {
 	if dbClient == nil {
-		cfg := config.GetConfig()
 		err := InitDb(cfg)
 		if err != nil {
 			logger.Fatal(logging.Postgres, logging.StartUp, err.Error(), nil)

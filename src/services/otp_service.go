@@ -24,7 +24,7 @@ type OtpDto struct {
 
 func NewOtpService(cfg *config.Config) *OtpService {
 	logger := logging.NewLogger(cfg)
-	redisClient := cache.GetRedis()
+	redisClient := cache.GetRedis(cfg)
 	return &OtpService{Logger: logger, Cfg: cfg, RedisClient: redisClient}
 }
 
