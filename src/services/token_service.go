@@ -89,3 +89,13 @@ func (s *TokenService) GetClaims(token string) (claimMap map[string]interface{},
 	}
 	return nil, &service_errors.ServiceError{EndUserMessage: service_errors.ClaimsNotFound}
 }
+
+func (s *TokenService) VerifyRefreshToken(token string) (*jwt.Token, error) {
+	return jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, &service_errors.ServiceError{EndUserMessage: service_errors.UnexpectedError}
+		}
+		return []byte(s.cfg.Jwt.RefreshSecret), nil
+	})
+}

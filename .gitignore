@@ -34,3 +34,4 @@ __debug_bin
 /src/config/config-production.yml
 /docker/redis/redis.conf
 /logs/
+/docs/

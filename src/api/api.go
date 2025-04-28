@@ -1,6 +1,7 @@
 package api
 
 import (
+	"base_structure/docs"
 	"base_structure/src/api/middlewares"
 	"base_structure/src/api/routers"
 	"base_structure/src/api/validations"
@@ -11,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"os"
 )
 
@@ -33,6 +36,7 @@ func InitServer(cfg *config.Config) {
 	r.Use(middlewares.DefaultStructuredLogger(cfg))
 	RegisterValidators(logger)
 	RegisterRoutes(r, cfg)
+	RegisterSwagger(r, cfg)
 	err = r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
 		logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
@@ -44,14 +48,8 @@ func RegisterRoutes(r *gin.Engine, cfg *config.Config) {
 	api := r.Group("/api")
 	v1 := api.Group("/v1")
 	{
-		//Health
-		health := v1.Group("/health")
-
 		//User
 		users := v1.Group("/users")
-
-		//Health
-		routers.Health(health)
 
 		//User
 		routers.User(users, cfg)
@@ -82,4 +80,13 @@ func RegisterValidators(logger logging.Logger) {
 			return
 		}
 	}
+}
+
+func RegisterSwagger(r *gin.Engine, cfg *config.Config) {
+	docs.SwaggerInfo.Title = "base structure web api golang-gin"
+	docs.SwaggerInfo.Description = "use this base structure to expand your projects in golang using gin framework and gorm orm. the base structure uses postgres as database and has authentication and authorization service"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = fmt.Sprintf("localhost:%s", cfg.Server.Port)
+	docs.SwaggerInfo.Schemes = []string{"http"}
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

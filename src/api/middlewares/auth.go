@@ -6,49 +6,50 @@ import (
 	"base_structure/src/constants"
 	"base_structure/src/pkg/service_errors"
 	"base_structure/src/services"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
-	"strings"
 )
 
 func Authentication(cfg *config.Config) gin.HandlerFunc {
-	var err error
-	var tokenService = services.NewTokenService(cfg)
-	return func(context *gin.Context) {
-		claimMap := map[string]interface{}{}
-		auth := context.GetHeader(constants.AuthorizationHeaderKey)
+	tokenSvc := services.NewTokenService(cfg)
+	blackSvc := services.NewBlacklistService(cfg)
+	return func(c *gin.Context) {
+		auth := c.GetHeader(constants.AuthorizationHeaderKey)
 		if auth == "" {
-			err = &service_errors.ServiceError{EndUserMessage: service_errors.TokenRequired}
-		} else {
-			token := strings.Split(auth, " ")
-			claimMap, err = tokenService.GetClaims(token[1])
-			if err != nil {
-				switch err.(*jwt.ValidationError).Errors {
-				case jwt.ValidationErrorExpired:
-					err = &service_errors.ServiceError{EndUserMessage: service_errors.TokenExpired}
-				default:
-					err = &service_errors.ServiceError{EndUserMessage: service_errors.TokenInvalid}
-				}
-			}
-		}
-		if err != nil {
-			context.AbortWithStatusJSON(
-				http.StatusUnauthorized,
-				helper.GenerateBaseResponseWithError(nil, false, helper.AuthError, err),
-			)
+			abortAuth(c, &service_errors.ServiceError{EndUserMessage: service_errors.TokenRequired})
 			return
 		}
-		context.Set(constants.UserIdKey, claimMap[constants.UserIdKey])
-		context.Set(constants.FirstNameKey, claimMap[constants.FirstNameKey])
-		context.Set(constants.LastNameKey, claimMap[constants.LastNameKey])
-		context.Set(constants.UsernameKey, claimMap[constants.UsernameKey])
-		context.Set(constants.EmailKey, claimMap[constants.EmailKey])
-		context.Set(constants.MobileNumberKey, claimMap[constants.MobileNumberKey])
-		context.Set(constants.RolesKey, claimMap[constants.RolesKey])
-		context.Set(constants.ExpireTimeKey, claimMap[constants.ExpireTimeKey])
-		context.Next()
+		rawToken, err := helper.ExtractToken(auth)
+		if err != nil {
+			abortAuth(c, &service_errors.ServiceError{EndUserMessage: service_errors.TokenInvalid})
+			return
+		}
+		claims, err := tokenSvc.GetClaims(rawToken)
+		if err != nil {
+			var ve *jwt.ValidationError
+			if errors.As(err, &ve) && ve.Errors == jwt.ValidationErrorExpired {
+				abortAuth(c, &service_errors.ServiceError{EndUserMessage: service_errors.TokenExpired})
+			}
+			return
+		}
+		if black, _ := blackSvc.IsBlacklisted(rawToken); black {
+			abortAuth(c, &service_errors.ServiceError{EndUserMessage: service_errors.TokenInvalid})
+			return
+		}
+		for k, v := range claims {
+			c.Set(k, v)
+		}
+		c.Next()
 	}
+}
+
+func abortAuth(c *gin.Context, err error) {
+	c.AbortWithStatusJSON(
+		http.StatusUnauthorized,
+		helper.GenerateBaseResponseWithError(nil, false, helper.AuthError, err),
+	)
 }
 
 func Authorization(validRoles []string) gin.HandlerFunc {

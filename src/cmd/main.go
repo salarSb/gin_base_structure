@@ -9,6 +9,10 @@ import (
 	"base_structure/src/data/db/migrations"
 )
 
+// @securityDefinitions.apikey BearerAuth
+// @in                          header
+// @name                        Authorization
+// @description                 "JWT: Bearer <token>"
 func main() {
 	cfg := config.GetConfig()
 	constants.InitConstants()
