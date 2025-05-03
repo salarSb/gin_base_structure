@@ -24,6 +24,8 @@ type Logger interface {
 
 	Fatal(cat Category, sub SubCategory, msg string, extra map[ExtraKey]interface{})
 	Fatalf(template string, args ...interface{})
+
+	Sync() error
 }
 
 func NewLogger(cfg *config.Config) Logger {

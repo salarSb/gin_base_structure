@@ -19,6 +19,12 @@ import (
 
 func InitServer(cfg *config.Config) {
 	logger := logging.NewLogger(cfg)
+	defer func(logger logging.Logger) {
+		err := logger.Sync()
+		if err != nil {
+			logger.Fatal(logging.Internal, logging.Closing, "error on syncing logger", nil)
+		}
+	}(logger)
 	err := godotenv.Load()
 	if err != nil {
 		logger.Fatal(logging.Internal, logging.Api, "error on reading .env", nil)
@@ -33,7 +39,7 @@ func InitServer(cfg *config.Config) {
 		r.Use(gin.Logger(), gin.Recovery())
 	}
 	r.Use(middlewares.Cors(cfg))
-	r.Use(middlewares.DefaultStructuredLogger(cfg))
+	r.Use(middlewares.StructuredLogger(logger))
 	RegisterValidators(logger)
 	RegisterRoutes(r, cfg)
 	RegisterSwagger(r, cfg)
