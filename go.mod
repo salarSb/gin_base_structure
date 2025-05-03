@@ -3,6 +3,7 @@ module base_structure
 go 1.24
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/go-redis/redis/v7 v7.4.1
