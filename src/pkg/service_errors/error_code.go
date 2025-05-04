@@ -25,6 +25,8 @@ const (
 	UsernameExists = "username exists"
 	// PermissionDenied => User
 	PermissionDenied = "permission denied"
+	// InvalidCredentials => User
+	InvalidCredentials = "invalid credentials"
 
 	// RecordNotFound => DB
 	RecordNotFound = "record not found"

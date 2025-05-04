@@ -189,7 +189,7 @@ func (s *UserService) LoginByUsername(req *dto.LoginByUsernameRequest) (*dto.Tok
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		return nil, err
+		return nil, &service_errors.ServiceError{EndUserMessage: service_errors.InvalidCredentials, Err: err}
 	}
 	tokenDto := tokenDto{
 		UserId:       user.ID,
