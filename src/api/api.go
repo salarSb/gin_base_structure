@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"os"
@@ -25,11 +24,6 @@ func InitServer(cfg *config.Config) {
 			logger.Fatal(logging.Internal, logging.Closing, "error on syncing logger", nil)
 		}
 	}(logger)
-	err := godotenv.Load()
-	if err != nil {
-		logger.Fatal(logging.Internal, logging.Api, "error on reading .env", nil)
-		return
-	}
 	appEnv := os.Getenv("APP_ENV")
 	gin.SetMode(cfg.Server.RunMode)
 	r := gin.New()
@@ -43,7 +37,7 @@ func InitServer(cfg *config.Config) {
 	RegisterValidators(logger)
 	RegisterRoutes(r, cfg)
 	RegisterSwagger(r, cfg)
-	err = r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
+	err := r.Run(fmt.Sprintf(":%s", cfg.Server.Port))
 	if err != nil {
 		logger.Fatal(logging.Internal, logging.Api, "error on running router", nil)
 		return

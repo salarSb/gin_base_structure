@@ -15,13 +15,20 @@ import (
 
 type UserHandler struct {
 	cfg         *config.Config
-	userService *services.UserService
+	userService services.UserServiceIface
 }
 
 func NewUserHandler(cfg *config.Config) *UserHandler {
 	return &UserHandler{
 		cfg:         cfg,
 		userService: services.NewUserService(cfg),
+	}
+}
+
+func NewUserHandlerWithSvc(cfg *config.Config, svc services.UserServiceIface) *UserHandler {
+	return &UserHandler{
+		cfg:         cfg,
+		userService: svc,
 	}
 }
 

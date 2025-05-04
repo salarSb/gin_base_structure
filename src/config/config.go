@@ -1,12 +1,17 @@
 package config
 
 import (
-	"errors"
 	"github.com/joho/godotenv"
-	"github.com/spf13/viper"
 	"log"
 	"os"
+	"path/filepath"
+	"sync"
 	"time"
+)
+
+var (
+	cfg  *Config
+	once sync.Once
 )
 
 type Config struct {
@@ -84,61 +89,40 @@ type JwtConfig struct {
 	RefreshSecret              string
 }
 
-func getConfigPath(env string) (string, error) {
-	if env == "docker" {
-		return "/app/config/config-docker", nil
-	} else if env == "production" {
-		return "/config/config-production", nil
-	} else if env == "development" {
-		return "config/config-development", nil
-	}
-	return "", errors.New("wrong environment")
-}
-
-func LoadConfig(filename string, fileType string) (*viper.Viper, error) {
-	v := viper.New()
-	v.SetConfigType(fileType)
-	v.SetConfigName(filename)
-	v.AddConfigPath("./src")
-	v.AutomaticEnv()
-	err := v.ReadInConfig()
+func LoadDotEnv() {
+	startDir, err := os.Getwd()
 	if err != nil {
-		log.Printf(" Unable to read config: %v", err)
-		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if errors.As(err, &configFileNotFoundError) {
-			return nil, errors.New("config file not found")
+		log.Fatalf("cannot get working dir: %v", err)
+	}
+	wd := startDir
+	for {
+		envPath := filepath.Join(wd, ".env")
+		if _, err := os.Stat(envPath); err == nil {
+			if lerr := godotenv.Load(envPath); lerr != nil {
+				log.Fatalf("unable to load %s: %v", envPath, lerr)
+			}
+			return
 		}
-		return nil, err
+		parent := filepath.Dir(wd)
+		if parent == wd {
+			log.Fatalf(".env not found (searched upward from %s)", startDir)
+		}
+		wd = parent
 	}
-	return v, nil
-}
-
-func ParseConfig(v *viper.Viper) (*Config, error) {
-	var cfg Config
-	err := v.Unmarshal(&cfg)
-	if err != nil {
-		log.Printf(" Unable to parse config: %v", err)
-		return nil, err
-	}
-	return &cfg, nil
 }
 
 func GetConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error in load .env file, %v", err)
-	}
-	cfgPath, err := getConfigPath(os.Getenv("APP_ENV"))
-	if err != nil {
-		log.Fatalf("Error in finding config path, %v", err)
-	}
-	v, err := LoadConfig(cfgPath, "yml")
-	if err != nil {
-		log.Fatalf("Error in load config, %v", err)
-	}
-	cfg, err := ParseConfig(v)
-	if err != nil {
-		log.Fatalf("Error in parse config, %v", err)
-	}
+	once.Do(func() {
+		LoadDotEnv()
+		v, err := resolveConfig()
+		if err != nil {
+			log.Fatalf("config error: %v", err)
+		}
+		c, err := ParseConfig(v)
+		if err != nil {
+			log.Fatalf("parsing config: %v", err)
+		}
+		cfg = c
+	})
 	return cfg
 }

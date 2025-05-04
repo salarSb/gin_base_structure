@@ -3,7 +3,6 @@ package logging
 import (
 	"base_structure/src/config"
 	"fmt"
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -70,7 +69,6 @@ func (l *zapLogger) Init() {
 			zap.AddCallerSkip(1),
 			zap.AddStacktrace(zapcore.ErrorLevel),
 		).Sugar()
-		_ = godotenv.Load()
 		zapSingleLogger = zl.With(string(AppName), os.Getenv("APP_NAME"), string(LoggerName), "ZapLog")
 	})
 	l.logger = zapSingleLogger

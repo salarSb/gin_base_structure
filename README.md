@@ -1,6 +1,14 @@
-# Base‑Structure — Gin • Gorm • Redis • PostgreSQL
+# Base‑Structure — Gin • Gorm • Redis • PostgreSQL 🚀
 
-**Production‑ready Golang starter** with JWT auth, Docker‑Compose services, Zap logging and live Swagger UI.
+A production‑ready Golang starter that ships with:
+
+* **Gin** HTTP framework
+* **Gorm** ORM (PostgreSQL driver, auto‑migrations)
+* JWT authentication with Redis blacklist / revocation
+* **Zap** structured logging (JSON + Lumberjack rotation)
+* Swagger / OpenAPI 3 docs (Swaggo)
+* Docker services (Postgres, Redis, PgAdmin)
+* Singleton config loaded via **`--config` flag** or **`CONFIG_FILE`** env‑var
 
 ---
 
@@ -8,79 +16,68 @@
 
 | Layer | Library / Tool | Purpose |
 |-------|----------------|---------|
-| HTTP server | **Gin‑Gonic** | Fast router, middleware ecosystem |
-| ORM | **Gorm** (`gorm.io/gorm`) | PostgreSQL driver, auto‑migrations |
-| Caching / blacklist | **Redis 7** (`go-redis/redis/v7`) | OTP rate‑limit & token revocation |
-| Auth | **golang‑jwt/jwt** | Access & Refresh tokens (HMAC) |
+| HTTP server | **Gin‑Gonic** | Fast router & middleware |
+| ORM | **Gorm** | PostgreSQL driver, migrations |
+| Cache / rate‑limit | **Redis 7** | OTP + token revocation |
+| Auth | **golang‑jwt/jwt** | Access & refresh tokens |
 | Validation | **validator/v10** | Custom tags: `ir_mobile`, `password` |
-| Config | **Viper** + dotenv | YAML per environment, env overrides |
-| Logging | **Zap** + Lumberjack | JSON logs + file rotation |
-| API docs | **Swaggo** + Swagger‑UI | OpenAPI 3 at `/swagger/` |
+| Config | **Viper** + dotenv | Singleton, CLI/env override |
+| Logging | **Zap** + Lumberjack | JSON logs, rotation |
+| Docs | **Swaggo** + Swagger‑UI | Live at `/swagger/` |
 
 ---
 
-## 🚀 Quick start (development)
+## 🚀 Quick start (local dev)
 
 ```bash
-# 1. clone & enter
-$ git clone <repo_url> my-api && cd my-api
+git clone <repo_url> my-api && cd my-api
 
-# 2. create local configs (never commit!)
-$ cp .env.example .env                                  # dotenv secrets
-$ cp src/config/config-development-example.yml src/config/config-development.yml
-$ cp docker/redis/redis_example.conf docker/redis/redis.conf
+# 1) secrets + config templates (never commit real values)
+cp .env.example .env
+cp src/config/config-development-example.yml src/config/config-development.yml
+cp docker/redis/redis_example.conf docker/redis/redis.conf
 
-# 3. spin up Postgres, Redis, pgAdmin
-$ docker compose -f docker/docker-compose.yml up -d
+# 2) start Postgres, Redis, PgAdmin
+docker compose -f docker/docker-compose.yml up -d
 
-# 4. grab Go modules & Swagger CLI
-$ go mod download
-$ go install github.com/swaggo/swag/cmd/swag@latest
+# 3) Go deps + Swagger CLI
+go mod download
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init -g ./src/cmd/main.go -o ./docs        # generate docs
 
-# 5. generate docs
-$ swag init -g ./src/cmd/main.go -o ./docs
-
-# 6. run the API
-$ go run ./src/cmd                   # default :5005
+# 4) run the API (port 5005 by default)
+go run ./src/cmd --config src/config/config-development.yml
 # → http://localhost:5005/swagger/
 ```
-
-> Change the port in `src/config/config-development.yml → server.port`.
 
 ---
 
 ## 🔧 Configuration
 
-### YAML files (<code>src/config/*.yml</code>)
+### Selecting the config file
 
-| APP_ENV | File loaded | Tracked in git |
-|---------|-------------|----------------|
-| `development` | `src/config/config-development.yml` | ❌ (copy from *_example*) |
-| `docker` | `/app/config/config-docker.yml` | ✅ |
-| `production` | `/config/config-production.yml` | ✅ / secret store |
+Priority order:
 
-Each file mirrors the `Config` struct in `src/config/config.go`.
+1. **CLI flag** — `--config /path/to/app.yml`
+2. **Environment variable** — `CONFIG_FILE=/app/config/app.yml`
 
-### `.env`
+If neither is set the binary exits with: *"no config specified"*.
 
-Secrets for Docker services (Postgres user/pwd, pgAdmin login, etc.).  
-Example keys: `POSTGRES_PASSWORD`, `PGADMIN_DEFAULT_PASSWORD`, `REDIS_PASSWORD`, `APP_ENV`.
+`.env` is auto‑located by walking up from the current directory (works from any CWD, tests, or containers).
 
 ---
 
-## 🐳 Docker‑Compose stack (`docker/docker-compose.yml`)
+## 🐳 Docker‑Compose stack
 
-| Service  | Host → Container | Notes |
-|----------|------------------|-------|
-| **postgres** | 5432 → 5432 | volume `postgres` |
-| **pgadmin4** | 8090 → 80  | volume `pgadmin` |
-| **redis** | 6379 → 6379 | uses `docker/redis/redis.conf` |
-
-Start / stop:
+| Service | Host → Container | Volume |
+|---------|------------------|--------|
+| postgres | 5432 → 5432 | `postgres` |
+| pgAdmin  | 8090 → 80  | `pgadmin` |
+| redis    | 6379 → 6379 | `redis` |
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d   # start background
-docker compose -f docker/docker-compose.yml down    # stop & remove
+docker compose -f docker/docker-compose.yml up -d   # start
+docker compose -f docker/docker-compose.yml down    # stop
 ```
 
 ---
@@ -88,92 +85,77 @@ docker compose -f docker/docker-compose.yml down    # stop & remove
 ## Swagger workflow
 
 ```bash
-# install CLI (once)
+# 1) install once
 go install github.com/swaggo/swag/cmd/swag@latest
 
-# regenerate after editing handler comments
+# 2) regenerate after editing handler comments
 swag init -g ./src/cmd/main.go -o ./docs
 ```
 
-* UI: **`/swagger/index.html`**
-* Raw spec: **`/swagger/doc.json`**
+* UI     → **`/swagger/index.html`**
+* JSON   → **`/swagger/doc.json`**
 
-Add to CI:
+CI snippet:
+
 ```bash
 swag init -g ./src/cmd/main.go -o ./docs
-git diff --exit-code ./docs        # fail PR if docs stale
+git diff --exit-code ./docs
 ```
 
 ---
 
-## 🗂️ Project layout (top‑level)
+## 🗂 Project layout
 
 ```
 base_structure/
-│
-├─ docker/
-│   ├─ docker-compose.yml
+├─ docker/                    # compose + redis.conf
 │   └─ redis/
-│       ├─ redis_example.conf
-│       └─ redis.conf   # copied, git‑ignored
-│
 ├─ src/
-│   ├─ cmd/                # main.go entry
+│   ├─ cmd/                   # main.go entry
 │   ├─ api/
-│   │   ├─ handlers/       # Gin handlers + Swagger comments
-│   │   ├─ routers/
-│   │   ├─ middlewares/
-│   │   ├─ dto/
-│   │   └─ helper/
-│   ├─ config/             # YAMLs + loader code
-│   ├─ constants/
-│   ├─ data/
-│   │   ├─ db/             # Gorm init + migrations
-│   │   └─ cache/          # Redis singleton helpers
-│   ├─ services/           # business logic (user, token, otp…)
-│   └─ pkg/                # logging, util packages
-│
-├─ docs/                   # swagger auto‑generated
+│   │   ├─ handlers/ routers/ middlewares/
+│   │   └─ dto/ helper/
+│   ├─ config/                # YAMLs + singleton loader
+│   ├─ data/                  # db + cache
+│   ├─ services/              # business logic
+│   └─ pkg/                   # logging, utils
+├─ docs/                      # swagger‑generated
 └─ go.mod / go.sum
 ```
 
 ---
 
-## 📚 Key Go dependencies
+## 🧪 Testing
 
-```text
-github.com/gin-gonic/gin           # HTTP router
-github.com/swaggo/gin-swagger      # Swagger UI middleware
-github.com/swaggo/swag             # OpenAPI generator
-gorm.io/gorm & gorm.io/driver/postgres
-github.com/golang-jwt/jwt          # JWT auth
-github.com/go-redis/redis/v7       # Redis client
-go.uber.org/zap                    # logging
-github.com/spf13/viper             # config
+* Unit tests live beside the code (`*_test.go`).
+* Custom validators registered in `TestMain`.
+* Singleton config reload stub available via build‑tag `testtools` if needed.
+
+```bash
+go test ./...                         # run all
+go test ./src/api/handlers            # single package
 ```
-
-Indirect packages are pulled automatically (`go mod tidy`).
 
 ---
 
 ## Makefile helpers (optional)
 
 ```bash
-make swag   # swag init
-make run    # go run ./src/cmd
-make test   # go test ./...
+make run     # go run ./src/cmd --config ...
+make swag    # swag init
+make test    # go test ./...
 ```
 
 ---
 
-## 🆘 FAQ
+## FAQ
 
-| Issue | Fix |
-|-------|-----|
-| `swag: command not found` | `$GOPATH/bin` not on `$PATH`; reinstall CLI |
-| UI shows outdated routes | `swag init` then hard‑refresh browser |
-| Redis `WRONGPASS` | Ensure `.env REDIS_PASSWORD` == `redis.conf requirepass` |
-| Postgres connection refused | Wait 2‑3 s after compose‑up; check creds in YAML & .env |
+| Problem | Remedy |
+|---------|--------|
+| `no config specified` | Pass `--config` or set `CONFIG_FILE` |
+| `swag: command not found` | `$GOPATH/bin` missing from `$PATH`; reinstall CLI |
+| Redis `WRONGPASS` | Ensure `.env REDIS_PASSWORD` matches `docker/redis/redis.conf` |
+| Postgres connection refused | Wait until container is healthy; verify creds |
+| Swagger UI shows old routes | Run `swag init` & hard‑refresh browser |
 
-Happy coding 🚀
-
+Happy building 🚀

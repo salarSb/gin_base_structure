@@ -1,13 +1,9 @@
 package constants
 
 import (
-	"base_structure/src/config"
-	"base_structure/src/pkg/logging"
-	"github.com/joho/godotenv"
 	"os"
 )
 
-var logger = logging.NewLogger(config.GetConfig())
 var (
 	AdminRoleName          string
 	DefaultRoleName        string
@@ -30,11 +26,6 @@ var (
 )
 
 func InitConstants() {
-	err := godotenv.Load()
-	if err != nil {
-		logger.Fatal(logging.Internal, logging.StartUp, "error in reading from .env", nil)
-		return
-	}
 	AdminRoleName = os.Getenv("ADMIN_ROLE_NAME")
 	DefaultRoleName = os.Getenv("DEFAULT_ROLE_NAME")
 	DefaultUserName = os.Getenv("DEFAULT_USER_NAME")
